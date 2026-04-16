@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Fake News Prediction</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+		crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+	<style>
+		body {
+			font-family: 'Poppins', sans-serif;
+		}
+	</style>
+</head>
+
+<body style="transition: background-color 0.5s ease; {% if result == 'REAL' %}background-color: #d4edda;{% elif result == 'FAKE' %}background-color: #f8d7da;{% else %}background-color: #ffffff;{% endif %}">
+	<nav class="navbar navbar-expand-lg navbar-light bg-light py-3 shadow-sm">
+		<div class="container-fluid justify-content-center">
+			<a class="navbar-brand fw-bold mb-0 h1 fs-2" href="/">FAKE NEWS PREDICTION</a>
+		</div>
+	</nav>
+
+
+	<div class="container mt-5 mb-3 text-center">
+		<h4 class="text-muted fw-light mb-3">Empowering your news consumption with an advanced Machine Learning classifier.</h4>
+		<p class="lead" style="font-weight: 400;">Paste an article or news excerpt below to verify its authenticity.</p>
+	</div>
+	<div class='container'>
+		<form action="/" method="POST">
+			<div class="col-three-forth text-center col-md-offset-2">
+				<div class="form-group">
+					<textarea class="form-control jTextarea mt-3" id="jTextarea'" rows="5" name="text"
+					 placeholder="Write your text here..." required>{{text}}</textarea>
+
+					<br><br>
+					<button class="btn btn-primary btn-outline btn-md" type="submit" name="predict">Predict</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<br>
+	{% if result %}
+	<div class="text-center mt-4 mb-5">
+		<h4>Prediction: 
+			{% if result == 'REAL' %}
+			<span class="badge bg-success shadow-sm px-4 py-2 fs-5">REAL</span>
+			{% else %}
+			<span class="badge bg-danger shadow-sm px-4 py-2 fs-5">FAKE</span>
+			{% endif %}
+		</h4>
+	</div>
+	{% endif %}
+
+
+<script>
+     function growTextarea (i,elem) {
+    var elem = $(elem);
+    var resizeTextarea = function( elem ) {
+        var scrollLeft = window.pageXOffset || (document.documentElement || document.body.parentNode || document.body).scrollLeft;
+        var scrollTop  = window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop;  
+        elem.css('height', 'auto').css('height', elem.prop('scrollHeight') );
+          window.scrollTo(scrollLeft, scrollTop);
+      };
+      elem.on('input', function() {
+        resizeTextarea( $(this) );
+      });
+      resizeTextarea( $(elem) );
+  }
+  
+  $('.jTextarea').each(growTextarea);
+</script>
+</body>
+
+</html>
