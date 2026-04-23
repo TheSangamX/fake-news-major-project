@@ -58,24 +58,45 @@
         // Initialize Supabase Setup
         const SUPABASE_URL = 'https://mpbtxrmzidbagwzwfwgo.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wYnR4cm16aWRiYWd3endmd2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4Nzg5NTIsImV4cCI6MjA5MjQ1NDk1Mn0.Q7d0sA5pbD7r-fSiGMZ5sbPEP_5RFaZog6W7DhQPT8A';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Redirect if already logged in!
         async function checkSession() {
-            const { data, error } = await supabase.auth.getSession();
-            if (data.session) {
-                window.location.href = '/';
+            try {
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (data && data.session) {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                console.error("Network or session error:", err);
             }
         }
         checkSession();
 
         // Handle Google Login Click Event
-        document.getElementById('google-login-btn').addEventListener('click', async () => {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-            });
-            if (error) {
-                alert('Error logging in: ' + error.message);
+        document.getElementById('google-login-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            console.log("Login button clicked!");
+            
+            // Show a visual loader to verify click is registering
+            const originalText = document.getElementById('google-login-btn').innerHTML;
+            document.getElementById('google-login-btn').innerHTML = "Connecting to Google...";
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: 'http://127.0.0.1:5000/'
+                    }
+                });
+                
+                if (error) {
+                    alert('Supabase Auth Error: ' + error.message);
+                    document.getElementById('google-login-btn').innerHTML = originalText;
+                }
+            } catch (err) {
+                alert("JS Error: " + err.message);
+                document.getElementById('google-login-btn').innerHTML = originalText;
             }
         });
     </script>
