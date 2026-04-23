@@ -76,6 +76,47 @@
   
   $('.jTextarea').each(growTextarea);
 </script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<script>
+		const SUPABASE_URL = 'https://mpbtxrmzidbagwzwfwgo.supabase.co';
+		const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wYnR4cm16aWRiYWd3endmd2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4Nzg5NTIsImV4cCI6MjA5MjQ1NDk1Mn0.Q7d0sA5pbD7r-fSiGMZ5sbPEP_5RFaZog6W7DhQPT8A';
+		const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+		async function checkAuth() {
+			const { data: { session } } = await supabase.auth.getSession();
+			if (!session) {
+				window.location.href = '/login';
+			} else {
+				const userEmail = session.user.email;
+				const username = userEmail.split('@')[0];
+				
+				const nav = document.querySelector('.container-fluid.justify-content-center');
+				if(nav) {
+					nav.classList.remove('justify-content-center');
+					nav.style.display = 'flex';
+					nav.style.justifyContent = 'space-between';
+					nav.style.alignItems = 'center';
+					
+					const userBox = document.createElement('div');
+					userBox.innerHTML = `
+						<span class="me-3 fw-bold text-secondary">Hi, ${username}</span>
+						<button id="logoutBtn" class="btn btn-sm btn-outline-danger shadow-sm">Logout</button>
+					`;
+					nav.appendChild(userBox);
+					
+					document.getElementById('logoutBtn').addEventListener('click', async () => {
+						await supabase.auth.signOut();
+						window.location.href = '/login';
+					});
+				}
+				document.body.style.opacity = '1';
+			}
+		}
+		
+		document.body.style.opacity = '0';
+		document.body.style.transition = 'opacity 0.2s';
+		checkAuth();
+	</script>
 </body>
 
 </html>

@@ -14,7 +14,7 @@ model = pickle.load(open('model2.pkl', 'rb'))
 gc.collect()
 tfidfvect = pickle.load(open('tfidfvect2.pkl', 'rb'))
 gc.collect()
-# Monkey-patch variables for sklearn 1.8 compatibility for models saved in older versions
+
 try:
     tfidfvect._tfidf.idf_ = tfidfvect._tfidf._idf_diag.diagonal()
     tfidfvect._tfidf._n_features_out = len(tfidfvect.vocabulary_)
@@ -26,6 +26,10 @@ except Exception:
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
+
+@app.route('/login', methods=['GET'])
+def login():
+    return render_template('login.html')
 
 def predict(text):
     review = re.sub('[^a-zA-Z]', ' ', text)
