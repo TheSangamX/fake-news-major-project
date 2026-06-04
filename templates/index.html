@@ -4,8 +4,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Fake News Prediction</title>
-	<link rel="icon" type="image/png" href="{{ url_for('static', filename='fake-news.png') }}">
+	<title>NewsIntel - NLP-Based News Authenticity Verification Platform</title>
+	<link rel="icon" type="image/png" href="{{ url_for('static', filename='sheild.png') }}?v=2">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
@@ -14,73 +14,439 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 	<style>
+		:root {
+			--primary-blue: #2563EB;
+			--primary-hover: #1D4ED8;
+			--bg-light: #F8FAFC;
+		}
+
 		body {
 			font-family: 'Poppins', sans-serif;
+			background-color: var(--bg-light);
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+
+		.text-primary {
+			color: var(--primary-blue) !important;
+		}
+
+		.btn-primary {
+			background-color: var(--primary-blue) !important;
+			border-color: var(--primary-blue) !important;
+		}
+
+		.btn-primary:hover,
+		.btn-primary:focus {
+			background-color: var(--primary-hover) !important;
+			border-color: var(--primary-hover) !important;
+			box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+		}
+
+		.nav-tabs .nav-link {
+			color: #64748B;
+			font-weight: 500;
+			border: none;
+			border-bottom: 2px solid transparent;
+			transition: all 0.2s ease;
+		}
+
+		.nav-tabs .nav-link.active {
+			color: var(--primary-blue) !important;
+			border: none;
+			border-bottom: 2px solid var(--primary-blue) !important;
+			background: transparent !important;
+		}
+
+		.nav-tabs .nav-link:hover {
+			border-color: transparent;
+			color: var(--primary-blue);
+		}
+
+		.stat-card {
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		.stat-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+		}
+
+		/* Enhanced Footer Styling */
+		.footer-enhanced {
+			background-color: #ffffff;
+			border-top: 1px solid #e2e8f0;
+			padding: 28px 0;
+			margin-top: auto;
+		}
+		.footer-credit {
+			font-size: 0.8rem;
+			color: #64748b;
+			font-weight: 500;
+			letter-spacing: 0.5px;
+			text-transform: uppercase;
+		}
+		.footer-developer {
+			font-size: 0.95rem;
+			color: #1e293b;
+			font-weight: 600;
+		}
+		.footer-links {
+			display: flex;
+			justify-content: center;
+			gap: 24px;
+			margin-top: 16px;
+		}
+		.footer-link-item {
+			color: #64748b;
+			text-decoration: none;
+			font-size: 0.85rem;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			position: relative;
+		}
+		.footer-link-item:hover {
+			color: var(--primary-blue, #2563EB);
+			transform: translateY(-2px);
+		}
+		
+		/* Custom Tooltips */
+		.footer-link-item[data-tooltip]::after {
+			content: attr(data-tooltip);
+			position: absolute;
+			bottom: 100%;
+			left: 50%;
+			transform: translate(-50%, -8px) scale(0.85);
+			background-color: #0f172a;
+			color: #ffffff;
+			padding: 6px 10px;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			font-weight: 500;
+			white-space: nowrap;
+			opacity: 0;
+			pointer-events: none;
+			transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+			z-index: 10;
+		}
+		.footer-link-item[data-tooltip]::before {
+			content: '';
+			position: absolute;
+			bottom: 100%;
+			left: 50%;
+			transform: translate(-50%, 0);
+			border-width: 5px;
+			border-style: solid;
+			border-color: #0f172a transparent transparent transparent;
+			opacity: 0;
+			pointer-events: none;
+			transition: all 0.2s ease;
+			z-index: 10;
+		}
+		.footer-link-item[data-tooltip]:hover::after,
+		.footer-link-item[data-tooltip]:hover::before {
+			opacity: 1;
+			transform: translate(-50%, -4px) scale(1);
 		}
 	</style>
 </head>
 
-<body style="transition: background-color 0.5s ease; {% if result == 'REAL' %}background-color: #d4edda;{% elif result == 'FAKE' %}background-color: #f8d7da;{% else %}background-color: #ffffff;{% endif %}">
-	<nav class="navbar navbar-expand-lg navbar-light bg-light py-3 shadow-sm">
+<body style="transition: background-color 0.5s ease; background-color: #ffffff; min-height: 100vh;">
+	<nav class="navbar navbar-expand-lg navbar-light bg-light py-3 shadow-sm border-bottom">
 		<div class="container-fluid justify-content-center">
-			<a class="navbar-brand fw-bold mb-0 h1 fs-2" href="/">FAKE NEWS PREDICTION</a>
+			<a class="navbar-brand fw-bold mb-0 h1 fs-2 text-primary d-flex align-items-center" href="/">
+				<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor"
+					class="bi bi-shield-check me-2" viewBox="0 0 16 16">
+					<path
+						d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.6.6 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.493zM8 2.5c.5 0 1.543.221 2.614.503a47 47 0 0 1 2.645.753c.484 3.737-.534 6.36-1.892 8.13a9.7 9.7 0 0 1-2.036 1.956 16 16 0 0 1-.663.43c-.23.14-.424.238-.568.293a2.6 2.6 0 0 1-.22.073 2.6 2.6 0 0 1-.22-.073c-.144-.055-.338-.153-.568-.293a16 16 0 0 1-.663-.43 9.7 9.7 0 0 1-2.036-1.956c-1.357-1.77-2.375-4.393-1.892-8.13a47 47 0 0 1 2.645-.753c1.071-.282 2.115-.503 2.614-.503z" />
+					<path
+						d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0" />
+				</svg>
+				NewsIntel
+			</a>
 		</div>
 	</nav>
 
-
-	<div class="container mt-5 mb-3 text-center">
-		<h4 class="text-muted fw-light mb-3">Empowering your news consumption with an advanced Machine Learning classifier.</h4>
-		<p class="lead" style="font-weight: 400;">Paste an article or news excerpt below to verify its authenticity.</p>
+	<div class="container mt-5 mb-4 text-center">
+		<h1 class="fw-bold mb-2 text-dark" style="font-size: 2.8rem; letter-spacing: -0.5px;">NewsIntel</h1>
+		<h5 class="text-muted fw-light mb-3">NLP-Based News Authenticity Verification Platform</h5>
+		<p class="lead text-secondary mx-auto" style="font-weight: 400; max-width: 800px;">
+			Analyze news articles using Machine Learning and Natural Language Processing to detect misinformation and
+			assess credibility.
+		</p>
 	</div>
-	<div class='container'>
-		<form action="/" method="POST">
-			<div class="col-three-forth text-center col-md-offset-2">
-				<div class="form-group">
-					<textarea class="form-control jTextarea mt-3" id="jTextarea'" rows="5" name="text"
-					 placeholder="Write your text here..." required>{{text}}</textarea>
 
-					<br><br>
-					<button class="btn btn-primary btn-outline btn-md" type="submit" name="predict">Predict</button>
+	<div class="container mt-4 mb-5">
+		<div class="row justify-content-center">
+			<!-- Main Predictor Column -->
+			<div class="col-lg-7 mb-4">
+				<div class="card border-0 shadow-sm p-4" style="border-radius: 12px; background: white;">
+					<h5 class="fw-bold mb-4 text-secondary d-flex align-items-center">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+							class="bi bi-file-text me-2 text-primary" viewBox="0 0 16 16">
+							<path
+								d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5M5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1z" />
+							<path
+								d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1" />
+						</svg>
+						Verify Article
+					</h5>
+					<form id="predictionForm">
+						<div class="form-group text-center">
+							<textarea class="form-control jTextarea mt-2" id="jTextarea" rows="5" name="text"
+								placeholder="Paste news article or paragraphs here..." required
+								style="border-radius: 8px; border: 1px solid #dee2e6; padding: 15px; resize: none;"></textarea>
+							<div id="validationFeedback" class="text-start text-danger mt-1 small"
+								style="font-size: 0.85rem; font-weight: 500; display: none;">
+								⚠️ Please enter at least 50 characters to run a reliable analysis.
+							</div>
+							<div class="text-start text-muted mt-2 small"
+								style="font-size: 0.8rem; font-style: italic;">
+								💡 Try pasting a news article to get started.
+							</div>
+							<br>
+							<button id="predictBtn" class="btn btn-primary btn-md px-5 py-2 fw-semibold w-100"
+								type="submit" style="border-radius: 8px; transition: all 0.2s;">
+								Analyze Article
+							</button>
+						</div>
+					</form>
+
+					<!-- Loader -->
+					<div id="loaderSpinner" class="text-center mt-4" style="display: none;">
+						<div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+							<span class="visually-hidden">Loading...</span>
+						</div>
+						<p class="text-muted mt-2 small" id="loaderText">Analyzing text patterns...</p>
+					</div>
+
+					<!-- Result Card -->
+					<div id="resultContainer" class="mt-4" style="display: none;">
+						<div id="resultCard" class="card border shadow-sm"
+							style="border-radius: 12px; overflow: hidden; transition: all 0.3s ease;">
+							<div class="card-body p-4 text-start">
+								<!-- Header -->
+								<div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+									<div class="d-flex align-items-center">
+										<span id="resultIcon" class="me-2 fs-4"></span>
+										<h5 class="card-title fw-bold mb-0 text-dark" style="letter-spacing: -0.3px;">
+											Verification Result</h5>
+									</div>
+									<div class="d-flex align-items-center gap-2">
+										<span class="text-muted small fw-bold"
+											style="font-size: 0.75rem; letter-spacing: 0.5px;">STATUS:</span>
+										<span id="resultStatus" class="badge px-3 py-2 fw-bold"
+											style="border-radius: 6px; letter-spacing: 0.5px; font-size: 0.85rem;"></span>
+									</div>
+								</div>
+
+								<!-- Verification Summary Sentence -->
+								<div class="p-3" style="border-radius: 8px;" id="resultDescriptionBox">
+									<p id="resultDescription" class="card-text text-dark mb-0 fw-medium"
+										style="font-size: 0.95rem; line-height: 1.5;"></p>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-		</form>
-	</div>
-	<br>
-	{% if result %}
-	<div class="text-center mt-4 mb-5">
-		<h4>Prediction: 
-			{% if result == 'REAL' %}
-			<span class="badge bg-success shadow-sm px-4 py-2 fs-5">REAL</span>
-			{% else %}
-			<span class="badge bg-danger shadow-sm px-4 py-2 fs-5">FAKE</span>
-			{% endif %}
-		</h4>
-	</div>
-	{% endif %}
 
+			<!-- History Column -->
+			<div class="col-lg-4">
+				<div class="card border-0 shadow-sm p-4"
+					style="border-radius: 12px; background: white; min-height: 300px;">
+					<h5 class="fw-bold mb-3 d-flex align-items-center text-secondary">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+							class="bi bi-clock-history me-2 text-primary" viewBox="0 0 16 16">
+							<path
+								d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 2.118a7 7 0 0 0-.308-.475l.872-.49c.221.396.414.808.579 1.233l-.973.218a7 7 0 0 0-.17-.486zM1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 7.146a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L2.5 8.293l1.646-1.647a.5.5 0 0 1 .708 0z" />
+							<path
+								d="M8 4.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.146.354l-2 2a.5.5 0 0 1-.708-.708L7.5 7.793V5a.5.5 0 0 1 .5-.5" />
+						</svg>
+						Recent History
+					</h5>
+					<hr class="mt-0 mb-3 text-muted">
+					<div id="historyList" class="d-flex flex-column gap-2">
+						<div class="text-center text-muted py-5" id="historyPlaceholder">
+							No verification history yet.
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-<script>
-     function growTextarea (i,elem) {
-    var elem = $(elem);
-    var resizeTextarea = function( elem ) {
-        var scrollLeft = window.pageXOffset || (document.documentElement || document.body.parentNode || document.body).scrollLeft;
-        var scrollTop  = window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop;  
-        elem.css('height', 'auto').css('height', elem.prop('scrollHeight') );
-          window.scrollTo(scrollLeft, scrollTop);
-      };
-      elem.on('input', function() {
-        resizeTextarea( $(this) );
-      });
-      resizeTextarea( $(elem) );
-  }
-  
-  $('.jTextarea').each(growTextarea);
-</script>
+	<!-- Enhanced Footer -->
+	<footer class="footer-enhanced mt-auto">
+		<div class="container text-center">
+			<p class="footer-credit mb-2">Built with Machine Learning, NLP and Flask</p>
+			<p class="footer-developer mb-2">© 2026 NewsIntel &nbsp;|&nbsp; Developed by Sangam Gupta</p>
+			<div class="footer-links">
+				<a href="https://www.sangamgupta.in/" target="_blank" rel="noopener noreferrer" class="footer-link-item" data-tooltip="Visit Portfolio">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-globe" viewBox="0 0 16 16">
+						<path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m7.5-6.923c-.67.424-1.248 1.05-1.655 1.832H7.5zm-1.804.595a8 8 0 0 0-1.653 1.238H5.16c.307-.468.667-.9 1.076-1.288M7.5 4.31H5.32c-.085.342-.143.7-.17 1.077h2.35zm0 2.155H5.115a9.3 9.3 0 0 0 .047 1.077h2.338zm0 2.154H5.162a9.3 9.3 0 0 0-.047 1.077h2.385zm0 2.155H5.32c.027.376.085.735.17 1.077H7.5zm-1.264 2.155A8 8 0 0 1 5.16 13.07h1.084c-.41-.389-.77-.82-1.077-1.288m1.264 0h1.5v2.155c-.67-.424-1.248-1.05-1.655-1.832m1.5-3.232H7.5v-2.154h2.154zm0-2.154H7.5V6.465h2.338a9.3 9.3 0 0 0-.047-1.077zM7.5 4.31h2.18c-.027-.376-.085-.735-.17-1.077zm1.655-1.832c-.407-.782-.986-1.408-1.655-1.832v2.155zm1.653 1.238a8 8 0 0 0-1.076-1.288V3.713zm.45 1.077h2.385a9.3 9.3 0 0 0-.047-1.077h-2.385zm.047 2.154h2.338a9.3 9.3 0 0 0 .047 1.077h-2.385zm-.047 2.155h2.385a9.3 9.3 0 0 0-.047-1.077H11.3zm-.17 2.155h-2.18c.085.342.143.7.17 1.077h2.18zm-1.655 1.832v-2.155h-1.5v2.155c.67-.424 1.248-1.05 1.655-1.832m1.653-1.238c-.41.389-.77.82-1.076 1.288h1.084a8 8 0 0 0 .979-.654z"/>
+					</svg>
+					Portfolio
+				</a>
+				<a href="https://github.com/TheSangamX" target="_blank" rel="noopener noreferrer" class="footer-link-item" data-tooltip="View GitHub Profile">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+						<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+					</svg>
+					GitHub
+				</a>
+				<a href="https://linkedin.com/in/thesangamx" target="_blank" rel="noopener noreferrer" class="footer-link-item" data-tooltip="Connect on LinkedIn">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
+						<path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+					</svg>
+					LinkedIn
+				</a>
+			</div>
+		</div>
+	</footer>
+
+	<script>
+		function growTextarea(i, elem) {
+			var elem = $(elem);
+			var resizeTextarea = function (elem) {
+				var scrollLeft = window.pageXOffset || (document.documentElement || document.body.parentNode || document.body).scrollLeft;
+				var scrollTop = window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop;
+				elem.css('height', 'auto').css('height', elem.prop('scrollHeight'));
+				window.scrollTo(scrollLeft, scrollTop);
+			};
+			elem.on('input', function () {
+				resizeTextarea($(this));
+			});
+			resizeTextarea($(elem));
+		}
+
+		$('.jTextarea').each(growTextarea);
+	</script>
+
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script>
 		const SUPABASE_URL = 'https://mpbtxrmzidbagwzwfwgo.supabase.co';
 		const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wYnR4cm16aWRiYWd3endmd2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4Nzg5NTIsImV4cCI6MjA5MjQ1NDk1Mn0.Q7d0sA5pbD7r-fSiGMZ5sbPEP_5RFaZog6W7DhQPT8A';
 		const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+		let currentUserSession = null;
+
+		function escapeHtml(text) {
+			return text
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#039;");
+		}
+
+		async function loadHistory(userId) {
+			try {
+				const { data, error } = await supabaseClient
+					.from('prediction_history')
+					.select('*')
+					.eq('user_id', userId)
+					.order('created_at', { ascending: false })
+					.limit(3);
+
+				if (error) {
+					console.error("Error fetching history:", error);
+					return;
+				}
+
+				const historyList = document.getElementById('historyList');
+				if (!historyList) return;
+
+				if (!data || data.length === 0) {
+					historyList.innerHTML = `
+						<div class="text-center text-muted py-5" id="historyPlaceholder">
+							No verification history yet.
+						</div>`;
+					return;
+				}
+
+				historyList.innerHTML = '';
+				data.forEach(item => {
+					const date = new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date(item.created_at).toLocaleDateString();
+					const isReal = item.prediction === 'REAL';
+					const badgeClass = isReal ? 'bg-success text-white shadow-sm' : 'bg-danger text-white shadow-sm';
+					const borderClass = isReal ? 'border-success' : 'border-danger';
+
+					// Truncate text content
+					let snippet = item.text_content;
+					if (snippet.length > 80) {
+						snippet = snippet.substring(0, 80) + '...';
+					}
+
+					const card = document.createElement('div');
+					card.className = `card border-start border-4 ${borderClass} shadow-sm mb-2 history-card`;
+					card.style.transition = 'transform 0.2s';
+					card.style.borderRadius = '8px';
+					card.innerHTML = `
+						<div class="card-body p-3">
+							<div class="d-flex justify-content-between align-items-start mb-2">
+								<span class="badge ${badgeClass}">${item.prediction}</span>
+								<small class="text-muted" style="font-size: 0.75rem;">${date}</small>
+							</div>
+							<p class="card-text mb-0 text-dark small" style="font-style: italic;">"${escapeHtml(snippet)}"</p>
+						</div>
+					`;
+
+					card.addEventListener('mouseenter', () => card.style.transform = 'translateY(-2px)');
+					card.addEventListener('mouseleave', () => card.style.transform = 'translateY(0)');
+
+					// Make card clickable to open Modal details
+					card.style.cursor = 'pointer';
+					card.title = "Click to view full text and copy";
+					card.addEventListener('click', () => {
+						document.getElementById('modalDate').innerText = date;
+						const modalBadge = document.getElementById('modalBadge');
+						modalBadge.innerText = item.prediction;
+						if (isReal) {
+							modalBadge.className = 'badge bg-success text-white px-3 py-2 fs-6';
+						} else {
+							modalBadge.className = 'badge bg-danger text-white px-3 py-2 fs-6';
+						}
+
+						document.getElementById('modalFullText').innerText = item.text_content;
+
+						const copyBtn = document.getElementById('modalCopyBtn');
+						copyBtn.onclick = async () => {
+							try {
+								await navigator.clipboard.writeText(item.text_content);
+								const originalHTML = copyBtn.innerHTML;
+								copyBtn.innerHTML = `
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-check me-2" viewBox="0 0 16 16">
+										<path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.293l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+										<path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
+									</svg> Copied!
+								`;
+								copyBtn.classList.remove('btn-primary');
+								copyBtn.classList.add('btn-success');
+								setTimeout(() => {
+									copyBtn.innerHTML = originalHTML;
+									copyBtn.classList.remove('btn-success');
+									copyBtn.classList.add('btn-primary');
+								}, 2000);
+							} catch (copyErr) {
+								console.error("Copy failed", copyErr);
+							}
+						};
+
+						const historyModal = new bootstrap.Modal(document.getElementById('historyModal'));
+						historyModal.show();
+					});
+
+					historyList.appendChild(card);
+				});
+			} catch (err) {
+				console.error("History loading error:", err);
+			}
+		}
 
 		async function checkAuth() {
 			try {
@@ -88,40 +454,224 @@
 				if (!data || !data.session) {
 					window.location.href = '/login';
 				} else {
-					const userEmail = data.session.user.email;
+					currentUserSession = data.session;
+					const userEmail = currentUserSession.user.email;
 					const username = userEmail.split('@')[0];
-					
+
+					// Format professional welcome greeting
+					let displayName = username.charAt(0).toUpperCase() + username.slice(1);
+					if (displayName.toLowerCase().includes('sangamgupta')) {
+						displayName = 'Sangam Gupta';
+					}
+
 					const nav = document.querySelector('.container-fluid.justify-content-center');
-					if(nav) {
+					if (nav) {
 						nav.classList.remove('justify-content-center');
 						nav.style.display = 'flex';
 						nav.style.justifyContent = 'space-between';
 						nav.style.alignItems = 'center';
-						
+						nav.style.maxWidth = '1200px';
+						nav.style.margin = '0 auto';
+						nav.style.width = '100%';
+
 						const userBox = document.createElement('div');
 						userBox.innerHTML = `
-							<span class="me-3 fw-bold text-secondary">Hi, ${username}</span>
-							<button id="logoutBtn" class="btn btn-sm btn-outline-danger shadow-sm">Logout</button>
+							<span class="me-3 fw-semibold text-secondary">Signed in as <b class="text-dark">${displayName}</b></span>
+							<button id="logoutBtn" class="btn btn-sm btn-outline-danger shadow-sm fw-medium">Logout</button>
 						`;
 						nav.appendChild(userBox);
-						
+
 						document.getElementById('logoutBtn').addEventListener('click', async () => {
 							await supabaseClient.auth.signOut();
 							window.location.href = '/login';
 						});
 					}
 					document.body.style.opacity = '1';
+
+					await loadHistory(currentUserSession.user.id);
 				}
 			} catch (err) {
 				console.error(err);
 				window.location.href = '/login';
 			}
 		}
-		
+
 		document.body.style.opacity = '0';
 		document.body.style.transition = 'opacity 0.2s';
 		checkAuth();
+
+		// Populate Predictor Results UI
+		function displayPredictionResult(prediction, confidence, realWords, fakeWords) {
+			const resultContainer = document.getElementById('resultContainer');
+			const resultCard = document.getElementById('resultCard');
+			const resultIcon = document.getElementById('resultIcon');
+			const resultStatus = document.getElementById('resultStatus');
+			const resultDescription = document.getElementById('resultDescription');
+			const resultDescriptionBox = document.getElementById('resultDescriptionBox');
+
+			resultStatus.innerText = prediction;
+
+			if (prediction === 'REAL') {
+				// Style for REAL
+				resultIcon.innerHTML = '✓';
+				resultIcon.className = 'me-2 fs-4 text-success fw-bold';
+				resultCard.style.border = '1px solid #10B981';
+				resultCard.style.borderLeft = '6px solid #10B981';
+				resultStatus.className = 'badge bg-success text-white px-3 py-2 fw-bold';
+				resultDescription.innerText = 'This article appears authentic.';
+				resultDescriptionBox.style.borderLeft = '4px solid #10B981';
+				resultDescriptionBox.style.backgroundColor = '#F0FDF4';
+
+				document.body.style.backgroundColor = '#F0FDF4'; // Subtle green body transition
+			} else {
+				// Style for FAKE
+				resultIcon.innerHTML = '✗';
+				resultIcon.className = 'me-2 fs-4 text-danger fw-bold';
+				resultCard.style.border = '1px solid #EF4444';
+				resultCard.style.borderLeft = '6px solid #EF4444';
+				resultStatus.className = 'badge bg-danger text-white px-3 py-2 fw-bold';
+				resultDescription.innerText = 'This article shows high indicators of misinformation.';
+				resultDescriptionBox.style.borderLeft = '4px solid #EF4444';
+				resultDescriptionBox.style.backgroundColor = '#FFF5F5';
+
+				document.body.style.backgroundColor = '#FFF5F5'; // Subtle red body transition
+			}
+
+			resultContainer.style.display = 'block';
+		}
+
+		// Text Verification Form Submit Handler
+		const textForm = document.getElementById('predictionForm');
+		if (textForm) {
+			// Real-time character length validation clear
+			const textareaElement = document.getElementById('jTextarea');
+			if (textareaElement) {
+				textareaElement.addEventListener('input', () => {
+					const textVal = textareaElement.value.trim();
+					const validationFeedback = document.getElementById('validationFeedback');
+					if (textVal.length >= 50 && validationFeedback) {
+						textareaElement.classList.remove('is-invalid');
+						validationFeedback.style.display = 'none';
+					}
+				});
+			}
+
+			textForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+
+				const textarea = document.getElementById('jTextarea');
+				const text = textarea.value.trim();
+				const validationFeedback = document.getElementById('validationFeedback');
+
+				if (text.length < 50) {
+					textarea.classList.add('is-invalid');
+					if (validationFeedback) {
+						validationFeedback.style.display = 'block';
+					}
+					return;
+				} else {
+					textarea.classList.remove('is-invalid');
+					if (validationFeedback) {
+						validationFeedback.style.display = 'none';
+					}
+				}
+
+				const predictBtn = document.getElementById('predictBtn');
+				const loader = document.getElementById('loaderSpinner');
+				const loaderText = document.getElementById('loaderText');
+				const resultContainer = document.getElementById('resultContainer');
+
+				// UI states - show loader spinner in button & central spinner
+				predictBtn.disabled = true;
+				const originalBtnText = predictBtn.innerHTML;
+				predictBtn.innerHTML = `
+					<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+					Analyzing...
+				`;
+				loaderText.innerText = "Analyzing text patterns with NLP models...";
+				loader.style.display = 'block';
+				resultContainer.style.display = 'none';
+
+				try {
+					// 2-second delay to simulate robust NLP processing
+					await new Promise(resolve => setTimeout(resolve, 2000));
+
+					const response = await fetch(`/predict/?text=${encodeURIComponent(text)}`);
+					if (!response.ok) throw new Error("Verification request failed.");
+
+					const data = await response.json();
+
+					// Display Results
+					displayPredictionResult(data.prediction, data.confidence, data.real_words, data.fake_words);
+
+					// Save to Supabase
+					if (currentUserSession) {
+						const { error: insertError } = await supabaseClient
+							.from('prediction_history')
+							.insert([
+								{
+									user_id: currentUserSession.user.id,
+									text_content: text,
+									prediction: data.prediction
+								}
+							]);
+						if (insertError) console.error("History logging error:", insertError);
+						await loadHistory(currentUserSession.user.id);
+					}
+				} catch (err) {
+					console.error(err);
+					alert("An error occurred during verification: " + err.message);
+				} finally {
+					predictBtn.disabled = false;
+					predictBtn.innerHTML = originalBtnText;
+					loader.style.display = 'none';
+				}
+			});
+		}
 	</script>
+
+	<!-- History View Modal -->
+	<div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content border-0 shadow" style="border-radius: 12px;">
+				<div class="modal-header border-bottom py-3">
+					<h5 class="modal-title fw-bold text-dark" id="historyModalLabel">Verification Details</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body p-4">
+					<div class="mb-3 d-flex justify-content-between align-items-center">
+						<span id="modalBadge" class="badge px-3 py-2 fs-6"></span>
+						<span id="modalDate" class="text-muted small fw-semibold"></span>
+					</div>
+					<h6 class="fw-bold text-secondary mb-2"
+						style="font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">Analyzed Article
+						Text</h6>
+					<div class="card p-3 bg-light border-0"
+						style="border-radius: 8px; max-height: 350px; overflow-y: auto;">
+						<p id="modalFullText" class="card-text text-dark mb-0"
+							style="font-style: italic; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">
+						</p>
+					</div>
+				</div>
+				<div class="modal-footer border-top py-3">
+					<button id="modalCopyBtn" class="btn btn-primary px-4 fw-semibold" style="border-radius: 8px;">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+							class="bi bi-clipboard-plus me-2" viewBox="0 0 16 16">
+							<path
+								d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7z" />
+							<path
+								d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z" />
+							<path
+								d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z" />
+						</svg>
+						Copy Article
+					</button>
+					<button type="button" class="btn btn-secondary px-4 fw-semibold" data-bs-dismiss="modal"
+						style="border-radius: 8px;">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 
 </html>
