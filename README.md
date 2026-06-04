@@ -3,6 +3,12 @@
 
 NewsIntel is a production-ready, full-stack web application designed to analyze news articles and detect potential misinformation using Natural Language Processing (NLP) and Machine Learning. The platform features secure Google Authentication, a dynamic verification history synced to a cloud database, and a highly polished glassmorphic interface.
 
+## 🌐 Live Demo
+
+You can experience the live platform here: **[newsintel.sangamgupta.in](https://newsintel.sangamgupta.in)**
+
+> **Note:** NewsIntel is an NLP-powered fake news detection platform that analyzes news content and predicts whether it is Real or Fake using Machine Learning techniques.
+
 ---
 
 ## 🚀 Key Features
